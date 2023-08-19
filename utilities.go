@@ -136,7 +136,7 @@ func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool
 	}
 
 	if symbols {
-		chars += "!$%&?*@#.:+-_^"
+		chars += "[]!\"#$%&'()*+,-./:;<=>?@\\^_`{|}~ "
 	}
 
 	if length == 0 {
