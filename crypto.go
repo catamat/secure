@@ -65,7 +65,7 @@ func AESDecryptWithGCM(encryptedText []byte, key []byte) ([]byte, error) {
 
 	nonceSize := gcm.NonceSize()
 	if len(et) < nonceSize {
-		return nil, errors.New("secure: text too short")
+		return nil, errors.New("encrypted text is shorter than the required size")
 	}
 
 	nonce, et := data[:nonceSize], data[nonceSize:]

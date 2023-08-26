@@ -69,7 +69,7 @@ func RSAExportPrivateKeyAsPEM(privKey *rsa.PrivateKey) []byte {
 func RSAParsePrivateKeyFromPEM(privPem []byte) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode(privPem)
 	if block == nil {
-		return nil, errors.New("secure: failed to parse PEM block containing the key")
+		return nil, errors.New("failed to parse PEM block containing the key")
 	}
 
 	privKey, err := x509.ParsePKCS1PrivateKey(block.Bytes)
@@ -101,7 +101,7 @@ func RSAExportPublicKeyAsPEM(pubKey *rsa.PublicKey) ([]byte, error) {
 func RSAParsePublicKeyFromPEM(pubPem []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(pubPem)
 	if block == nil {
-		return nil, errors.New("secure: failed to parse PEM block containing the key")
+		return nil, errors.New("failed to parse PEM block containing the key")
 	}
 
 	pubKey, err := x509.ParsePKIXPublicKey(block.Bytes)
@@ -116,7 +116,7 @@ func RSAParsePublicKeyFromPEM(pubPem []byte) (*rsa.PublicKey, error) {
 		break
 	}
 
-	return nil, errors.New("secure: key type is not RSA")
+	return nil, errors.New("key type is not RSA")
 }
 
 // GenerateRandomToken generates a random token.
@@ -145,7 +145,7 @@ func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool
 
 	clen := len(chars)
 	if clen < 2 || clen > 256 {
-		return "", errors.New("secure: wrong charset length")
+		return "", errors.New("wrong charset length")
 	}
 
 	maxrb := 255 - (256 % clen)
@@ -155,7 +155,7 @@ func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool
 
 	for {
 		if _, err := rand.Read(r); err != nil {
-			return "", errors.New("secure: error reading random bytes")
+			return "", errors.New("error reading random bytes")
 		}
 
 		for _, rb := range r {
@@ -187,7 +187,7 @@ func GenerateHumanPassword(letters int, digits int) (string, error) {
 
 	clen := len(chars)
 	if clen < 2 || clen > 256 {
-		return "", errors.New("secure: wrong charset length")
+		return "", errors.New("wrong charset length")
 	}
 
 	maxrb := 255 - (256 % clen)
@@ -199,7 +199,7 @@ func GenerateHumanPassword(letters int, digits int) (string, error) {
 
 	for {
 		if _, err := rand.Read(r); err != nil {
-			return "", errors.New("secure: error reading random bytes")
+			return "", errors.New("error reading random bytes")
 		}
 
 		for _, rb := range r {

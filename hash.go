@@ -73,5 +73,5 @@ func Argon2CompareHash(hashedPassword []byte, password []byte) error {
 		return nil
 	}
 
-	return errors.New("secure: password does not match")
+	return errors.New("password does not match")
 }
