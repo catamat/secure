@@ -105,6 +105,18 @@ func hashing() {
 	} else {
 		fmt.Println("Valid password")
 	}
+
+	// Generate Argon2 hash
+	hashedPassword, _ = Argon2GenerateHash(password, 64*1024, 1, 2, 16, 32)
+	fmt.Println("Hashed password:", string(hashedPassword))
+
+	// Compare Argon2 hash
+	err = Argon2CompareHash(hashedPassword, password)
+	if err != nil {
+		fmt.Println("Invalid password")
+	} else {
+		fmt.Println("Valid password")
+	}
 }
 
 func signing() {
