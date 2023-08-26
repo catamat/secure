@@ -12,18 +12,18 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// GenerateBcryptHash generates a new hash from a password at the given cost.
-func GenerateBcryptHash(password []byte, cost int) ([]byte, error) {
+// BcryptGenerateHash generates a new hash from a password at the given cost.
+func BcryptGenerateHash(password []byte, cost int) ([]byte, error) {
 	return bcrypt.GenerateFromPassword(password, cost)
 }
 
-// CompareBcryptHash compares an hashed password with its plain equivalent.
-func CompareBcryptHash(hashedPassword []byte, password []byte) error {
+// BcryptCompareHash compares an hashed password with its plain equivalent.
+func BcryptCompareHash(hashedPassword []byte, password []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, password)
 }
 
-// GenerateArgon2IDHash generates a new hash from a password with the given parameters.
-func GenerateArgon2IDHash(password []byte, memory uint32, time uint32, threads uint8, saltLen int, keyLen uint32) ([]byte, error) {
+// Argon2GenerateHash generates a new hash from a password with the given parameters.
+func Argon2GenerateHash(password []byte, memory uint32, time uint32, threads uint8, saltLen int, keyLen uint32) ([]byte, error) {
 	salt := make([]byte, saltLen)
 	if _, err := rand.Read(salt); err != nil {
 		return nil, err
@@ -40,8 +40,8 @@ func GenerateArgon2IDHash(password []byte, memory uint32, time uint32, threads u
 	return encoded, nil
 }
 
-// CompareArgon2IDHash compares an hashed password with its plain equivalent.
-func CompareArgon2IDHash(hashedPassword []byte, password []byte) error {
+// Argon2CompareHash compares an hashed password with its plain equivalent.
+func Argon2CompareHash(hashedPassword []byte, password []byte) error {
 	parts := strings.Split(string(hashedPassword), "$")
 
 	c := struct {

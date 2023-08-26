@@ -7,8 +7,8 @@ import (
 	"crypto/sha256"
 )
 
-// SignRsaPSS signs a text using a private key.
-func SignRsaPSS(text []byte, privKey *rsa.PrivateKey) ([]byte, error) {
+// RSASignWithPSS signs a text using a private key.
+func RSASignWithPSS(text []byte, privKey *rsa.PrivateKey) ([]byte, error) {
 	textHash := sha256.New()
 	_, err := textHash.Write(text)
 	if err != nil {
@@ -28,8 +28,8 @@ func SignRsaPSS(text []byte, privKey *rsa.PrivateKey) ([]byte, error) {
 	return s, nil
 }
 
-// VerifyRsaPSS verifies a text using a public key.
-func VerifyRsaPSS(text []byte, signature []byte, pubKey *rsa.PublicKey) error {
+// RSAVerifyWithPSS verifies a text using a public key.
+func RSAVerifyWithPSS(text []byte, signature []byte, pubKey *rsa.PublicKey) error {
 	s, err := DecodeBase64(signature)
 	if err != nil {
 		return err

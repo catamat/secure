@@ -9,9 +9,9 @@ import (
 	"errors"
 )
 
-// EncryptAesAEAD encrypts a decrypted text using the key.
-func EncryptAesAEAD(decryptedText []byte, key []byte) ([]byte, error) {
-	key, salt, err := DeriveScryptKey(key, nil)
+// AESEncryptWithGCM encrypts a decrypted text using the key.
+func AESEncryptWithGCM(decryptedText []byte, key []byte) ([]byte, error) {
+	key, salt, err := ScryptDeriveKey(key, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +39,8 @@ func EncryptAesAEAD(decryptedText []byte, key []byte) ([]byte, error) {
 	return et, nil
 }
 
-// DecryptAesAEAD decrypts an encrypted text using the key.
-func DecryptAesAEAD(encryptedText []byte, key []byte) ([]byte, error) {
+// AESDecryptWithGCM decrypts an encrypted text using the key.
+func AESDecryptWithGCM(encryptedText []byte, key []byte) ([]byte, error) {
 	et, err := DecodeBase64(encryptedText)
 	if err != nil {
 		return nil, err
@@ -48,7 +48,7 @@ func DecryptAesAEAD(encryptedText []byte, key []byte) ([]byte, error) {
 
 	salt, data := et[len(et)-32:], et[:len(et)-32]
 
-	key, _, err = DeriveScryptKey(key, salt)
+	key, _, err = ScryptDeriveKey(key, salt)
 	if err != nil {
 		return nil, err
 	}
@@ -77,8 +77,8 @@ func DecryptAesAEAD(encryptedText []byte, key []byte) ([]byte, error) {
 	return decryptedText, nil
 }
 
-// EncryptRsaOAEP encrypts a decrypted text using a public key.
-func EncryptRsaOAEP(decryptedText []byte, pubKey *rsa.PublicKey, label []byte) ([]byte, error) {
+// RSAEncryptWithOAEP encrypts a decrypted text using a public key.
+func RSAEncryptWithOAEP(decryptedText []byte, pubKey *rsa.PublicKey, label []byte) ([]byte, error) {
 	rng := rand.Reader
 
 	encryptedText, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, decryptedText, label)
@@ -91,8 +91,8 @@ func EncryptRsaOAEP(decryptedText []byte, pubKey *rsa.PublicKey, label []byte) (
 	return et, nil
 }
 
-// DecryptRsaOAEP decrypts an encrypted text using a private key.
-func DecryptRsaOAEP(encryptedText []byte, privKey *rsa.PrivateKey, label []byte) ([]byte, error) {
+// RSADecryptWithOAEP decrypts an encrypted text using a private key.
+func RSADecryptWithOAEP(encryptedText []byte, privKey *rsa.PrivateKey, label []byte) ([]byte, error) {
 	et, err := DecodeBase64(encryptedText)
 	if err != nil {
 		return nil, err

@@ -28,8 +28,8 @@ func DecodeBase64(data []byte) ([]byte, error) {
 	return dbuf[:n], err
 }
 
-// DeriveScryptKey derives a 32-bytes key from a variable length password.
-func DeriveScryptKey(password []byte, salt []byte) ([]byte, []byte, error) {
+// ScryptDeriveKey derives a 32-bytes key from a variable length password.
+func ScryptDeriveKey(password []byte, salt []byte) ([]byte, []byte, error) {
 	if salt == nil {
 		salt = make([]byte, 32)
 		if _, err := rand.Read(salt); err != nil {
@@ -45,14 +45,14 @@ func DeriveScryptKey(password []byte, salt []byte) ([]byte, []byte, error) {
 	return key, salt, nil
 }
 
-// GenerateRsaKeyPair generates a key pair from a variable bit size.
-func GenerateRsaKeyPair(bits int) (*rsa.PrivateKey, *rsa.PublicKey) {
+// RSAGenerateKeyPair generates a key pair from a variable bit size.
+func RSAGenerateKeyPair(bits int) (*rsa.PrivateKey, *rsa.PublicKey) {
 	privKey, _ := rsa.GenerateKey(rand.Reader, bits)
 	return privKey, &privKey.PublicKey
 }
 
-// ExportRsaPrivateKeyAsPem encodes a private key in a PEM block.
-func ExportRsaPrivateKeyAsPem(privKey *rsa.PrivateKey) []byte {
+// RSAExportPrivateKeyAsPEM encodes a private key in a PEM block.
+func RSAExportPrivateKeyAsPEM(privKey *rsa.PrivateKey) []byte {
 	privBytes := x509.MarshalPKCS1PrivateKey(privKey)
 
 	privPem := pem.EncodeToMemory(
@@ -65,8 +65,8 @@ func ExportRsaPrivateKeyAsPem(privKey *rsa.PrivateKey) []byte {
 	return privPem
 }
 
-// ParseRsaPrivateKeyFromPem decodes a private key from a PEM block.
-func ParseRsaPrivateKeyFromPem(privPem []byte) (*rsa.PrivateKey, error) {
+// RSAParsePrivateKeyFromPEM decodes a private key from a PEM block.
+func RSAParsePrivateKeyFromPEM(privPem []byte) (*rsa.PrivateKey, error) {
 	block, _ := pem.Decode(privPem)
 	if block == nil {
 		return nil, errors.New("secure: failed to parse PEM block containing the key")
@@ -80,8 +80,8 @@ func ParseRsaPrivateKeyFromPem(privPem []byte) (*rsa.PrivateKey, error) {
 	return privKey, nil
 }
 
-// ExportRsaPublicKeyAsPem encodes a public key in a PEM block.
-func ExportRsaPublicKeyAsPem(pubKey *rsa.PublicKey) ([]byte, error) {
+// RSAExportPublicKeyAsPEM encodes a public key in a PEM block.
+func RSAExportPublicKeyAsPEM(pubKey *rsa.PublicKey) ([]byte, error) {
 	pubBytes, err := x509.MarshalPKIXPublicKey(pubKey)
 	if err != nil {
 		return nil, err
@@ -97,8 +97,8 @@ func ExportRsaPublicKeyAsPem(pubKey *rsa.PublicKey) ([]byte, error) {
 	return pubPem, nil
 }
 
-// ParseRsaPublicKeyFromPem decodes a public key from a PEM block.
-func ParseRsaPublicKeyFromPem(pubPem []byte) (*rsa.PublicKey, error) {
+// RSAParsePublicKeyFromPEM decodes a public key from a PEM block.
+func RSAParsePublicKeyFromPEM(pubPem []byte) (*rsa.PublicKey, error) {
 	block, _ := pem.Decode(pubPem)
 	if block == nil {
 		return nil, errors.New("secure: failed to parse PEM block containing the key")
