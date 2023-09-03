@@ -22,8 +22,8 @@ func BcryptCompareHash(hashedPassword []byte, password []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, password)
 }
 
-// Argon2GenerateHash generates a new hash from a plain password with the given parameters.
-func Argon2GenerateHash(plainPassword []byte, memory uint32, time uint32, threads uint8, saltLength int, keyLength uint32) ([]byte, error) {
+// Argon2idGenerateHash generates a new hash from a plain password with the given parameters.
+func Argon2idGenerateHash(plainPassword []byte, memory uint32, time uint32, threads uint8, saltLength int, keyLength uint32) ([]byte, error) {
 	salt := make([]byte, saltLength)
 	if _, err := rand.Read(salt); err != nil {
 		return nil, err
@@ -40,8 +40,8 @@ func Argon2GenerateHash(plainPassword []byte, memory uint32, time uint32, thread
 	return encoded, nil
 }
 
-// Argon2CompareHash compares an hashed password with its plain equivalent.
-func Argon2CompareHash(hashedPassword []byte, password []byte) error {
+// Argon2idCompareHash compares an hashed password with its plain equivalent.
+func Argon2idCompareHash(hashedPassword []byte, password []byte) error {
 	parts := strings.Split(string(hashedPassword), "$")
 
 	c := struct {
