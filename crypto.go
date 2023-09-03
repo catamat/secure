@@ -9,8 +9,8 @@ import (
 	"errors"
 )
 
-// AESEncryptWithGCM encrypts a decrypted text using the key.
-func AESEncryptWithGCM(decryptedText []byte, key []byte) ([]byte, error) {
+// AESEncryptWithGCM encrypts a plain text using the key.
+func AESEncryptWithGCM(plainText []byte, key []byte) ([]byte, error) {
 	key, salt, err := ScryptDeriveKey(key, nil)
 	if err != nil {
 		return nil, err
@@ -31,7 +31,7 @@ func AESEncryptWithGCM(decryptedText []byte, key []byte) ([]byte, error) {
 		return nil, err
 	}
 
-	encryptedText := gcm.Seal(nonce, nonce, decryptedText, nil)
+	encryptedText := gcm.Seal(nonce, nonce, plainText, nil)
 	encryptedText = append(encryptedText, salt...)
 
 	et := EncodeBase64(encryptedText)
@@ -77,11 +77,11 @@ func AESDecryptWithGCM(encryptedText []byte, key []byte) ([]byte, error) {
 	return decryptedText, nil
 }
 
-// RSAEncryptWithOAEP encrypts a decrypted text using a public key.
-func RSAEncryptWithOAEP(decryptedText []byte, pubKey *rsa.PublicKey, label []byte) ([]byte, error) {
+// RSAEncryptWithOAEP encrypts a plain text using a public key.
+func RSAEncryptWithOAEP(plainText []byte, pubKey *rsa.PublicKey, label []byte) ([]byte, error) {
 	rng := rand.Reader
 
-	encryptedText, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, decryptedText, label)
+	encryptedText, err := rsa.EncryptOAEP(sha256.New(), rng, pubKey, plainText, label)
 	if err != nil {
 		return nil, err
 	}

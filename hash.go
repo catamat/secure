@@ -12,9 +12,9 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// BcryptGenerateHash generates a new hash from a password at the given cost.
-func BcryptGenerateHash(password []byte, cost int) ([]byte, error) {
-	return bcrypt.GenerateFromPassword(password, cost)
+// BcryptGenerateHash generates a new hash from a plain password at the given cost.
+func BcryptGenerateHash(plainPassword []byte, cost int) ([]byte, error) {
+	return bcrypt.GenerateFromPassword(plainPassword, cost)
 }
 
 // BcryptCompareHash compares an hashed password with its plain equivalent.
@@ -22,14 +22,14 @@ func BcryptCompareHash(hashedPassword []byte, password []byte) error {
 	return bcrypt.CompareHashAndPassword(hashedPassword, password)
 }
 
-// Argon2GenerateHash generates a new hash from a password with the given parameters.
-func Argon2GenerateHash(password []byte, memory uint32, time uint32, threads uint8, saltLen int, keyLen uint32) ([]byte, error) {
-	salt := make([]byte, saltLen)
+// Argon2GenerateHash generates a new hash from a plain password with the given parameters.
+func Argon2GenerateHash(plainPassword []byte, memory uint32, time uint32, threads uint8, saltLength int, keyLength uint32) ([]byte, error) {
+	salt := make([]byte, saltLength)
 	if _, err := rand.Read(salt); err != nil {
 		return nil, err
 	}
 
-	hash := argon2.IDKey(password, salt, time, memory, threads, keyLen)
+	hash := argon2.IDKey(plainPassword, salt, time, memory, threads, keyLength)
 
 	b64Salt := base64.RawStdEncoding.EncodeToString(salt)
 	b64Hash := base64.RawStdEncoding.EncodeToString(hash)
@@ -45,10 +45,10 @@ func Argon2CompareHash(hashedPassword []byte, password []byte) error {
 	parts := strings.Split(string(hashedPassword), "$")
 
 	c := struct {
-		memory  uint32
-		time    uint32
-		threads uint8
-		keyLen  uint32
+		memory    uint32
+		time      uint32
+		threads   uint8
+		keyLength uint32
 	}{}
 
 	_, err := fmt.Sscanf(parts[3], "m=%d,t=%d,p=%d", &c.memory, &c.time, &c.threads)
@@ -66,9 +66,9 @@ func Argon2CompareHash(hashedPassword []byte, password []byte) error {
 		return err
 	}
 
-	c.keyLen = uint32(len(decodedHash))
+	c.keyLength = uint32(len(decodedHash))
 
-	comparisonHash := argon2.IDKey([]byte(password), salt, c.time, c.memory, c.threads, c.keyLen)
+	comparisonHash := argon2.IDKey([]byte(password), salt, c.time, c.memory, c.threads, c.keyLength)
 	if subtle.ConstantTimeCompare(decodedHash, comparisonHash) == 1 {
 		return nil
 	}

@@ -119,8 +119,18 @@ func RSAParsePublicKeyFromPEM(pubPem []byte) (*rsa.PublicKey, error) {
 	return nil, errors.New("key type is not RSA")
 }
 
-// GenerateRandomToken generates a random token.
-func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool, symbols bool) (string, error) {
+// GenerateRandomBytes generates securely random bytes.
+func GenerateRandomBytes(length int) ([]byte, error) {
+	b := make([]byte, length)
+	if _, err := rand.Read(b); err != nil {
+		return nil, err
+	}
+
+	return b, nil
+}
+
+// GenerateRandomString generates a random string.
+func GenerateRandomString(length int, upperCase bool, lowerCase bool, digits bool, symbols bool) (string, error) {
 	var chars = ""
 
 	if upperCase {
@@ -136,7 +146,7 @@ func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool
 	}
 
 	if symbols {
-		chars += "[]!\"#$%&'()*+,-./:;<=>?@\\^_`{|}~ "
+		chars += "[]!\"#$%&'()*+,-./:;<=>?@\\^_`{|}~"
 	}
 
 	if length == 0 {
@@ -172,6 +182,12 @@ func GenerateRandomToken(length int, upperCase bool, lowerCase bool, digits bool
 			}
 		}
 	}
+}
+
+// GenerateRandomStringURLSafe generates a URL-safe, base64 encoded, random string.
+func GenerateRandomStringURLSafe(length int) (string, error) {
+	b, err := GenerateRandomBytes(length)
+	return base64.URLEncoding.EncodeToString(b), err
 }
 
 // GenerateHumanPassword generates a human readable password.
