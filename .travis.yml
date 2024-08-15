@@ -1,0 +1,11 @@
+go_import_path: github.com/catamat/secure
+
+language: go
+
+go:
+  - 1.17.x
+  - tip
+
+os:
+  - linux
+  - osx
