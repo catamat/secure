@@ -1,17 +1,62 @@
 # Secure
-[![License](https://img.shields.io/github/license/mashape/apistatus.svg)](https://github.com/catamat/secure/blob/master/LICENSE)
-[![Build Status](https://travis-ci.org/catamat/secure.svg?branch=master)](https://travis-ci.org/catamat/secure)
+[![License](https://img.shields.io/github/license/catamat/secure.svg)](https://github.com/catamat/secure/blob/master/LICENSE)
 [![Go Report Card](https://goreportcard.com/badge/github.com/catamat/secure)](https://goreportcard.com/report/github.com/catamat/secure)
 [![Go Reference](https://pkg.go.dev/badge/github.com/catamat/secure.svg)](https://pkg.go.dev/github.com/catamat/secure)
 [![Version](https://img.shields.io/github/tag/catamat/secure.svg?color=blue&label=version)](https://github.com/catamat/secure/releases)
 
-Secure is a simple package to easily work with the most common cryptography functions.
+Secure is a package that makes it easy to work with the most common cryptographic functions. 
 
 ## Installation:
 ```
 go get github.com/catamat/secure@latest
 ```
-## Example:
+
+## Quick start (safe-by-default API):
+The top-level functions pick modern algorithms and OWASP 2024 parameters for
+you — just choose the *shape* of the operation and the library does the rest.
+
+| You want to…                           | Call                               | Uses                                           |
+|----------------------------------------|------------------------------------|------------------------------------------------|
+| Sign a message                         | `Sign` / `Verify`                  | Ed25519                                        |
+| Encrypt for someone's public key       | `Encrypt` / `Decrypt`              | X25519 + XChaCha20-Poly1305                    |
+| Encrypt with a shared random key       | `EncryptWithKey` / `DecryptWithKey`| XChaCha20-Poly1305                             |
+| Encrypt with a human-chosen password   | `EncryptWithPassword` / `DecryptWithPassword` | scrypt + XChaCha20-Poly1305       |
+| Store a password                       | `HashPassword` / `VerifyPassword`  | Argon2id (64 MiB, t=3, p=4)                    |
+| Generate a random key                  | `GenerateKey`                      | 32 random bytes                                |
+| Generate a signing key pair            | `GenerateSigningKeyPair`           | Ed25519                                        |
+| Generate an encryption key pair        | `GenerateEncryptionKeyPair`        | X25519                                         |
+
+```golang
+package main
+
+import (
+	"fmt"
+
+	"github.com/catamat/secure"
+)
+
+func main() {
+	// Password hashing
+	h, _ := secure.HashPassword([]byte("correct horse battery staple"))
+	_ = secure.VerifyPassword(h, []byte("correct horse battery staple"))
+
+	// Asymmetric encryption
+	priv, pub, _ := secure.GenerateEncryptionKeyPair()
+	ct, _ := secure.Encrypt([]byte("hello"), pub)
+	pt, _ := secure.Decrypt(ct, priv)
+	fmt.Println(string(pt))
+
+	// Signing
+	sPriv, sPub, _ := secure.GenerateSigningKeyPair()
+	sig, _ := secure.Sign([]byte("msg"), sPriv)
+	_ = secure.Verify([]byte("msg"), sig, sPub)
+}
+```
+
+The lower-level exported helpers (`RSA*`, `AES*`, `Bcrypt*`, `Argon2id*`, …)
+stay available when you need to pick a specific algorithm or tune parameters.
+
+## Full example:
 ```golang
 package main
 
@@ -26,6 +71,10 @@ func main() {
 	asymmetric()
 	fmt.Println("---")
 	signing()
+	fmt.Println("---")
+	modernAsymmetric()
+	fmt.Println("---")
+	modernSigning()
 	fmt.Println("---")
 	hashing()
 	fmt.Println("---")
@@ -48,13 +97,21 @@ func asymmetric() {
 
 	if !privFile || !pubFile {
 		// Create the keys
-		privKey, pubKey := secure.RSAGenerateKeyPair(4096)
+		privKey, pubKey, err := secure.RSAGenerateKeyPair(4096)
+		if err != nil {
+			fmt.Println("Error: Can't generate RSA key pair:", err)
+			return
+		}
 
 		// Export the keys to PEM
-		privPem := secure.RSAExportPrivateKeyAsPEM(privKey)
+		privPem, err := secure.RSAExportPrivateKeyAsPEM(privKey)
+		if err != nil {
+			fmt.Println("Error: Can't export private key:", err)
+			return
+		}
 		pubPem, _ := secure.RSAExportPublicKeyAsPEM(pubKey)
 
-		if err := os.WriteFile("private.pem", privPem, 0644); err != nil {
+		if err := os.WriteFile("private.pem", privPem, 0600); err != nil {
 			fmt.Println("Error: Can't write private.pem file")
 			return
 		}
@@ -156,13 +213,59 @@ func symmetric() {
 	key := []byte("supersecretpassword")
 	text := []byte("This is super secret message!")
 
-	// Encrypt AES with GCM message
+	// Encrypt AES with GCM message (password-based, scrypt KDF)
 	encryptedMessage, _ := secure.AESEncryptWithGCM(text, key)
 	fmt.Println("Symmetric Encrypted Message:", string(encryptedMessage))
 
 	// Decrypt AES with GCM message
 	decryptedMessage, _ := secure.AESDecryptWithGCM(encryptedMessage, key)
 	fmt.Println("Symmetric Decrypted Message:", string(decryptedMessage))
+
+	// Encrypt with a raw 32-byte key (XChaCha20-Poly1305)
+	rawKey, _ := secure.GenerateRandomBytes(32)
+	ct, _ := secure.ChaCha20Poly1305EncryptWithKey(text, rawKey)
+	pt, _ := secure.ChaCha20Poly1305DecryptWithKey(ct, rawKey)
+	fmt.Println("XChaCha20 Decrypted:", string(pt))
+}
+
+func modernAsymmetric() {
+	// Generate an X25519 key pair for the recipient
+	privKey, pubKey, err := secure.X25519GenerateKeyPair()
+	if err != nil {
+		fmt.Println("Error: Can't generate X25519 key pair:", err)
+		return
+	}
+
+	text := []byte("This is super secret message!")
+
+	// Encrypt with X25519 + XChaCha20-Poly1305
+	encryptedMessage, _ := secure.X25519EncryptWithChaCha20Poly1305(text, pubKey)
+	fmt.Println("X25519 Encrypted Message:", string(encryptedMessage))
+
+	// Decrypt with the recipient private key
+	decryptedMessage, _ := secure.X25519DecryptWithChaCha20Poly1305(encryptedMessage, privKey)
+	fmt.Println("X25519 Decrypted Message:", string(decryptedMessage))
+}
+
+func modernSigning() {
+	privKey, pubKey, err := secure.Ed25519GenerateKeyPair()
+	if err != nil {
+		fmt.Println("Error: Can't generate Ed25519 key pair:", err)
+		return
+	}
+
+	text := []byte("Verifiable message!")
+
+	// Sign with Ed25519
+	signedMessage, _ := secure.Ed25519Sign(text, privKey)
+	fmt.Println("Ed25519 Signed Message:", string(signedMessage))
+
+	// Verify with Ed25519
+	if err := secure.Ed25519Verify(text, signedMessage, pubKey); err != nil {
+		fmt.Println("Invalid message")
+	} else {
+		fmt.Println("Valid message")
+	}
 }
 
 func utilities() {
