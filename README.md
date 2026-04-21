@@ -8,7 +8,7 @@ Secure is a package that makes it easy to work with the most common cryptographi
 
 ## Installation:
 ```
-go install github.com/catamat/secure@latest
+go get github.com/catamat/secure@latest
 ```
 
 ## Quick start (safe-by-default API):
